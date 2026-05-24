@@ -107,8 +107,6 @@ const AmenitiesInput = ({
 
     return (
         <div className="ami-wrapper">
-
-            {/* Seleccionadas activas */}
             {value.length > 0 && (
                 <div className="ami-selected">
                     <span className="ami-label">SELECCIONADAS ({value.length})</span>
@@ -123,7 +121,6 @@ const AmenitiesInput = ({
                 </div>
             )}
 
-            {/* Input custom */}
             <div className="ami-input-row">
                 <input
                     className="adm-input"
@@ -138,7 +135,6 @@ const AmenitiesInput = ({
                 </button>
             </div>
 
-            {/* Sugerencias / historial */}
             <div className="ami-historial">
                 <span className="ami-label">SUGERENCIAS</span>
                 <div className="ami-chips-row ami-chips-suggestions">
@@ -203,7 +199,7 @@ const HouseFormFields = ({
             <SelectField label="Operación" name="operation"   value={data.operation}   onChange={onChange} required
                 options={["Venta", "Alquiler", "Temporal"]} />
             <SelectField label="Tipo"      name="typeOfHouse" value={data.typeOfHouse} onChange={onChange} required
-                options={[ "Casa", "Departamento", "PH", "Duplex", "Triplex", "Local Comercial", "Oficina", "Cochera", "Terreno", "Lote", "Quinta", "Campo", "Galpón", "Edificio", "Hotel", "Consultorio", ]} />
+                options={["Casa", "Departamento", "PH", "Duplex", "Triplex", "Local Comercial", "Oficina", "Cochera", "Terreno", "Lote", "Quinta", "Campo", "Galpón", "Edificio", "Hotel", "Consultorio"]} />
         </div>
 
         <div className="adm-form-section-label" style={{ marginTop: "1.5rem" }}>CARACTERÍSTICAS</div>
@@ -237,7 +233,6 @@ const HouseFormFields = ({
             value={data.amenities ?? []}
             onChange={onAmenitiesChange}
         />
-
     </div>
 )
 
@@ -256,6 +251,9 @@ const AdminDashboard = () => {
     const [loadingCreate, setLoadingCreate] = useState(false)
     const [errorCreate, setErrorCreate]     = useState<string | null>(null)
     const [dragOver, setDragOver]           = useState(false)
+    // Drag & drop reorder — crear
+    const [dragSrcCreate, setDragSrcCreate]   = useState<number | null>(null)
+    const [dragOverCreate, setDragOverCreate] = useState<number | null>(null)
 
     const [editHouse, setEditHouse]         = useState<House | null>(null)
     const [editForm, setEditForm]           = useState<FormData>(EMPTY_FORM)
@@ -264,8 +262,14 @@ const AdminDashboard = () => {
     const [loadingEdit, setLoadingEdit]     = useState(false)
     const [errorEdit, setErrorEdit]         = useState<string | null>(null)
     const [dragOverEdit, setDragOverEdit]   = useState(false)
+    // Drag & drop reorder — editar existentes
+    const [dragSrcEditEx, setDragSrcEditEx]   = useState<number | null>(null)
+    const [dragOverEditEx, setDragOverEditEx] = useState<number | null>(null)
+    // Drag & drop reorder — editar nuevas
+    const [dragSrcEditNew, setDragSrcEditNew]   = useState<number | null>(null)
+    const [dragOverEditNew, setDragOverEditNew] = useState<number | null>(null)
 
-    const [deleteId, setDeleteId]   = useState<string | null>(null)
+    const [deleteId, setDeleteId]     = useState<string | null>(null)
     const [loadingDel, setLoadingDel] = useState(false)
 
     /* ── GET ── */
@@ -313,15 +317,20 @@ const AdminDashboard = () => {
 
     const removeCreateImage = (index: number) => {
         setFormData(prev => ({ ...prev, imageUrl: prev.imageUrl.filter((_: any, i: any) => i !== index) }))
-        if (coverIndex >= index && coverIndex > 0) setCoverIndex(c => c - 1)
+        if (coverIndex === index) setCoverIndex(0)
+        else if (coverIndex > index) setCoverIndex(c => c - 1)
     }
 
     const moveCreateImage = (from: number, to: number) => {
+        if (from === to) return
         const imgs = [...formData.imageUrl]
         const [moved] = imgs.splice(from, 1)
         imgs.splice(to, 0, moved)
         setFormData(prev => ({ ...prev, imageUrl: imgs }))
+        // Actualizar portada
         if (coverIndex === from) setCoverIndex(to)
+        else if (from < to && coverIndex > from && coverIndex <= to) setCoverIndex(c => c - 1)
+        else if (from > to && coverIndex >= to && coverIndex < from) setCoverIndex(c => c + 1)
     }
 
     const handleCreate = async (e: React.FormEvent) => {
@@ -330,6 +339,7 @@ const AdminDashboard = () => {
         setErrorCreate(null)
         try {
             const files = formData.imageUrl.filter((f: any) => f instanceof File) as File[]
+            // El orden ya está definido por el array; la portada se mueve al frente
             const ordered = [...files]
             if (coverIndex !== 0 && coverIndex < ordered.length) {
                 const [cover] = ordered.splice(coverIndex, 1)
@@ -374,11 +384,31 @@ const AdminDashboard = () => {
 
     const removeEditExistingImage = (index: number) => {
         setEditForm(prev => ({ ...prev, imageUrl: (prev.imageUrl as string[]).filter((_, i) => i !== index) }))
-        if (editCover >= index && editCover > 0) setEditCover(c => c - 1)
+        if (editCover === index) setEditCover(0)
+        else if (editCover > index) setEditCover(c => c - 1)
     }
 
     const removeEditNewImage = (index: number) => {
         setNewEditImages(prev => prev.filter((_, i) => i !== index))
+    }
+
+    const moveEditExistingImage = (from: number, to: number) => {
+        if (from === to) return
+        const imgs = [...(editForm.imageUrl as string[])]
+        const [moved] = imgs.splice(from, 1)
+        imgs.splice(to, 0, moved)
+        setEditForm(prev => ({ ...prev, imageUrl: imgs }))
+        if (editCover === from) setEditCover(to)
+        else if (from < to && editCover > from && editCover <= to) setEditCover(c => c - 1)
+        else if (from > to && editCover >= to && editCover < from) setEditCover(c => c + 1)
+    }
+
+    const moveEditNewImage = (from: number, to: number) => {
+        if (from === to) return
+        const imgs = [...newEditImages]
+        const [moved] = imgs.splice(from, 1)
+        imgs.splice(to, 0, moved)
+        setNewEditImages(imgs)
     }
 
     const handleUpdate = async (e: React.FormEvent) => {
@@ -508,7 +538,7 @@ const AdminDashboard = () => {
                                 />
 
                                 <div className="adm-form-section-label">
-                                    IMÁGENES ({formData.imageUrl.length}/25) — ★ para marcar portada
+                                    IMÁGENES ({formData.imageUrl.length}/25) — arrastrá para reordenar · ★ portada
                                 </div>
 
                                 <div className={`adm-dropzone ${dragOver ? "is-over" : ""}`}
@@ -528,17 +558,43 @@ const AdminDashboard = () => {
                                 {formData.imageUrl.length > 0 && (
                                     <div className="adm-img-preview-grid">
                                         {formData.imageUrl.map((img: string | File, i: number) => (
-                                            <div key={i} className={`adm-img-thumb ${coverIndex === i ? "is-cover" : ""}`}>
+                                            <div
+                                                key={i}
+                                                className={`adm-img-thumb ${coverIndex === i ? "is-cover" : ""} ${dragSrcCreate === i ? "is-dragging" : ""} ${dragOverCreate === i && dragSrcCreate !== i ? "is-drag-over" : ""}`}
+                                                draggable
+                                                onDragStart={e => {
+                                                    setDragSrcCreate(i)
+                                                    e.dataTransfer.effectAllowed = "move"
+                                                }}
+                                                onDragOver={e => {
+                                                    e.preventDefault()
+                                                    e.dataTransfer.dropEffect = "move"
+                                                    setDragOverCreate(i)
+                                                }}
+                                                onDragLeave={() => setDragOverCreate(null)}
+                                                onDrop={e => {
+                                                    e.preventDefault()
+                                                    if (dragSrcCreate !== null && dragSrcCreate !== i) {
+                                                        moveCreateImage(dragSrcCreate, i)
+                                                    }
+                                                    setDragSrcCreate(null)
+                                                    setDragOverCreate(null)
+                                                }}
+                                                onDragEnd={() => {
+                                                    setDragSrcCreate(null)
+                                                    setDragOverCreate(null)
+                                                }}
+                                            >
                                                 <img src={previewUrl(img)} alt={`img-${i}`} />
                                                 <div className="adm-img-thumb-actions">
-                                                    <button type="button" className="adm-thumb-cover" title="Portada" onClick={() => setCoverIndex(i)}>
+                                                    <button type="button" className="adm-thumb-cover" title="Marcar como portada" onClick={() => setCoverIndex(i)}>
                                                         {coverIndex === i ? "★" : "☆"}
                                                     </button>
-                                                    {i > 0 && <button type="button" className="adm-thumb-move" onClick={() => moveCreateImage(i, i - 1)}>←</button>}
-                                                    {i < formData.imageUrl.length - 1 && <button type="button" className="adm-thumb-move" onClick={() => moveCreateImage(i, i + 1)}>→</button>}
                                                     <button type="button" className="adm-thumb-del" onClick={() => removeCreateImage(i)}>✕</button>
                                                 </div>
                                                 {coverIndex === i && <span className="adm-cover-label">PORTADA</span>}
+                                                <span className="adm-drag-handle" title="Arrastrá para reordenar">⠿</span>
+                                                <span className="adm-img-index">{i + 1}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -582,12 +638,38 @@ const AdminDashboard = () => {
                                 />
 
                                 <div className="adm-form-section-label">
-                                    IMÁGENES ACTUALES ({(editForm.imageUrl as string[]).length}) — ★ portada · ✕ eliminar
+                                    IMÁGENES ACTUALES ({(editForm.imageUrl as string[]).length}) — arrastrá para reordenar · ★ portada · ✕ eliminar
                                 </div>
 
                                 <div className="adm-img-preview-grid">
                                     {(editForm.imageUrl as string[]).map((url, i) => (
-                                        <div key={i} className={`adm-img-thumb ${editCover === i ? "is-cover" : ""}`}>
+                                        <div
+                                            key={i}
+                                            className={`adm-img-thumb ${editCover === i ? "is-cover" : ""} ${dragSrcEditEx === i ? "is-dragging" : ""} ${dragOverEditEx === i && dragSrcEditEx !== i ? "is-drag-over" : ""}`}
+                                            draggable
+                                            onDragStart={e => {
+                                                setDragSrcEditEx(i)
+                                                e.dataTransfer.effectAllowed = "move"
+                                            }}
+                                            onDragOver={e => {
+                                                e.preventDefault()
+                                                e.dataTransfer.dropEffect = "move"
+                                                setDragOverEditEx(i)
+                                            }}
+                                            onDragLeave={() => setDragOverEditEx(null)}
+                                            onDrop={e => {
+                                                e.preventDefault()
+                                                if (dragSrcEditEx !== null && dragSrcEditEx !== i) {
+                                                    moveEditExistingImage(dragSrcEditEx, i)
+                                                }
+                                                setDragSrcEditEx(null)
+                                                setDragOverEditEx(null)
+                                            }}
+                                            onDragEnd={() => {
+                                                setDragSrcEditEx(null)
+                                                setDragOverEditEx(null)
+                                            }}
+                                        >
                                             <img src={url} alt={`img-${i}`} />
                                             <div className="adm-img-thumb-actions">
                                                 <button type="button" className="adm-thumb-cover" onClick={() => setEditCover(i)}>
@@ -596,12 +678,14 @@ const AdminDashboard = () => {
                                                 <button type="button" className="adm-thumb-del" onClick={() => removeEditExistingImage(i)}>✕</button>
                                             </div>
                                             {editCover === i && <span className="adm-cover-label">PORTADA</span>}
+                                            <span className="adm-drag-handle" title="Arrastrá para reordenar">⠿</span>
+                                            <span className="adm-img-index">{i + 1}</span>
                                         </div>
                                     ))}
                                 </div>
 
                                 <div className="adm-form-section-label" style={{ marginTop: "1.5rem" }}>
-                                    AGREGAR IMÁGENES NUEVAS ({newEditImages.length})
+                                    AGREGAR IMÁGENES NUEVAS ({newEditImages.length}) — arrastrá para reordenar
                                 </div>
 
                                 <div className={`adm-dropzone ${dragOverEdit ? "is-over" : ""}`}
@@ -620,12 +704,40 @@ const AdminDashboard = () => {
                                 {newEditImages.length > 0 && (
                                     <div className="adm-img-preview-grid">
                                         {newEditImages.map((file, i) => (
-                                            <div key={i} className="adm-img-thumb">
+                                            <div
+                                                key={i}
+                                                className={`adm-img-thumb ${dragSrcEditNew === i ? "is-dragging" : ""} ${dragOverEditNew === i && dragSrcEditNew !== i ? "is-drag-over" : ""}`}
+                                                draggable
+                                                onDragStart={e => {
+                                                    setDragSrcEditNew(i)
+                                                    e.dataTransfer.effectAllowed = "move"
+                                                }}
+                                                onDragOver={e => {
+                                                    e.preventDefault()
+                                                    e.dataTransfer.dropEffect = "move"
+                                                    setDragOverEditNew(i)
+                                                }}
+                                                onDragLeave={() => setDragOverEditNew(null)}
+                                                onDrop={e => {
+                                                    e.preventDefault()
+                                                    if (dragSrcEditNew !== null && dragSrcEditNew !== i) {
+                                                        moveEditNewImage(dragSrcEditNew, i)
+                                                    }
+                                                    setDragSrcEditNew(null)
+                                                    setDragOverEditNew(null)
+                                                }}
+                                                onDragEnd={() => {
+                                                    setDragSrcEditNew(null)
+                                                    setDragOverEditNew(null)
+                                                }}
+                                            >
                                                 <img src={previewUrl(file)} alt={`new-${i}`} />
                                                 <div className="adm-img-thumb-actions">
                                                     <button type="button" className="adm-thumb-del" onClick={() => removeEditNewImage(i)}>✕</button>
                                                 </div>
                                                 <span className="adm-new-label">NUEVA</span>
+                                                <span className="adm-drag-handle" title="Arrastrá para reordenar">⠿</span>
+                                                <span className="adm-img-index">{i + 1}</span>
                                             </div>
                                         ))}
                                     </div>
