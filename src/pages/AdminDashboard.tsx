@@ -251,7 +251,6 @@ const AdminDashboard = () => {
     const [loadingCreate, setLoadingCreate] = useState(false)
     const [errorCreate, setErrorCreate]     = useState<string | null>(null)
     const [dragOver, setDragOver]           = useState(false)
-    // Drag & drop reorder — crear
     const [dragSrcCreate, setDragSrcCreate]   = useState<number | null>(null)
     const [dragOverCreate, setDragOverCreate] = useState<number | null>(null)
 
@@ -262,10 +261,8 @@ const AdminDashboard = () => {
     const [loadingEdit, setLoadingEdit]     = useState(false)
     const [errorEdit, setErrorEdit]         = useState<string | null>(null)
     const [dragOverEdit, setDragOverEdit]   = useState(false)
-    // Drag & drop reorder — editar existentes
     const [dragSrcEditEx, setDragSrcEditEx]   = useState<number | null>(null)
     const [dragOverEditEx, setDragOverEditEx] = useState<number | null>(null)
-    // Drag & drop reorder — editar nuevas
     const [dragSrcEditNew, setDragSrcEditNew]   = useState<number | null>(null)
     const [dragOverEditNew, setDragOverEditNew] = useState<number | null>(null)
 
@@ -327,7 +324,6 @@ const AdminDashboard = () => {
         const [moved] = imgs.splice(from, 1)
         imgs.splice(to, 0, moved)
         setFormData(prev => ({ ...prev, imageUrl: imgs }))
-        // Actualizar portada
         if (coverIndex === from) setCoverIndex(to)
         else if (from < to && coverIndex > from && coverIndex <= to) setCoverIndex(c => c - 1)
         else if (from > to && coverIndex >= to && coverIndex < from) setCoverIndex(c => c + 1)
@@ -339,7 +335,6 @@ const AdminDashboard = () => {
         setErrorCreate(null)
         try {
             const files = formData.imageUrl.filter((f: any) => f instanceof File) as File[]
-            // El orden ya está definido por el array; la portada se mueve al frente
             const ordered = [...files]
             if (coverIndex !== 0 && coverIndex < ordered.length) {
                 const [cover] = ordered.splice(coverIndex, 1)
@@ -445,6 +440,7 @@ const AdminDashboard = () => {
         try {
             await axios.delete(`${import.meta.env.VITE_API_URL}/delete/${deleteId}`, { withCredentials: true })
             setDeleteId(null)
+            setEditHouse(null)
             await getHouses()
         } catch (err) {
             console.error("Error eliminando", err)
@@ -475,15 +471,20 @@ const AdminDashboard = () => {
                 </button>
             </header>
 
-            {/* ── LISTA ── */}
+            {/* ── LISTA — click en la fila abre el modal de edición ── */}
             <section className="adm-list">
                 {loadingList ? (
                     <div className="adm-state"><div className="adm-spinner" /><p>Cargando propiedades...</p></div>
                 ) : houses.length === 0 ? (
                     <div className="adm-state"><p className="adm-state-empty">No hay propiedades cargadas.</p></div>
                 ) : houses.map((house, i) => (
-                    <motion.div key={house._id} className="adm-row"
-                        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+                    <motion.div
+                        key={house._id}
+                        className="adm-row"
+                        onClick={() => openEdit(house)}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.04 }}
                     >
                         <div className="adm-row-img">
                             <img src={house.imageUrl[0]} alt={house.title} />
@@ -494,8 +495,8 @@ const AdminDashboard = () => {
                             <p className="adm-row-dir">{house.direction}</p>
                             {house.amenities && house.amenities.length > 0 && (
                                 <div className="adm-row-amenities">
-                                    {house.amenities.slice(0, 3).map((a, i) => (
-                                        <span key={i} className="adm-row-amenity">{a}</span>
+                                    {house.amenities.slice(0, 3).map((a, idx) => (
+                                        <span key={idx} className="adm-row-amenity">{a}</span>
                                     ))}
                                     {house.amenities.length > 3 && (
                                         <span className="adm-row-amenity adm-row-amenity--more">+{house.amenities.length - 3}</span>
@@ -507,10 +508,7 @@ const AdminDashboard = () => {
                             <span className="adm-row-price">{house.price}</span>
                             <span className="adm-row-type">{house.typeOfHouse}</span>
                         </div>
-                        <div className="adm-row-actions">
-                            <button className="adm-edit-btn" onClick={() => openEdit(house)}>EDITAR</button>
-                            <button className="adm-del-btn" onClick={() => setDeleteId(house._id)}>ELIMINAR</button>
-                        </div>
+                        <div className="adm-row-arrow">›</div>
                     </motion.div>
                 ))}
             </section>
@@ -562,28 +560,15 @@ const AdminDashboard = () => {
                                                 key={i}
                                                 className={`adm-img-thumb ${coverIndex === i ? "is-cover" : ""} ${dragSrcCreate === i ? "is-dragging" : ""} ${dragOverCreate === i && dragSrcCreate !== i ? "is-drag-over" : ""}`}
                                                 draggable
-                                                onDragStart={e => {
-                                                    setDragSrcCreate(i)
-                                                    e.dataTransfer.effectAllowed = "move"
-                                                }}
-                                                onDragOver={e => {
-                                                    e.preventDefault()
-                                                    e.dataTransfer.dropEffect = "move"
-                                                    setDragOverCreate(i)
-                                                }}
+                                                onDragStart={e => { setDragSrcCreate(i); e.dataTransfer.effectAllowed = "move" }}
+                                                onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; setDragOverCreate(i) }}
                                                 onDragLeave={() => setDragOverCreate(null)}
                                                 onDrop={e => {
                                                     e.preventDefault()
-                                                    if (dragSrcCreate !== null && dragSrcCreate !== i) {
-                                                        moveCreateImage(dragSrcCreate, i)
-                                                    }
-                                                    setDragSrcCreate(null)
-                                                    setDragOverCreate(null)
+                                                    if (dragSrcCreate !== null && dragSrcCreate !== i) moveCreateImage(dragSrcCreate, i)
+                                                    setDragSrcCreate(null); setDragOverCreate(null)
                                                 }}
-                                                onDragEnd={() => {
-                                                    setDragSrcCreate(null)
-                                                    setDragOverCreate(null)
-                                                }}
+                                                onDragEnd={() => { setDragSrcCreate(null); setDragOverCreate(null) }}
                                             >
                                                 <img src={previewUrl(img)} alt={`img-${i}`} />
                                                 <div className="adm-img-thumb-actions">
@@ -637,6 +622,7 @@ const AdminDashboard = () => {
                                     onAmenitiesChange={amenities => setEditForm(prev => ({ ...prev, amenities }))}
                                 />
 
+                                {/* ── Imágenes existentes ── */}
                                 <div className="adm-form-section-label">
                                     IMÁGENES ACTUALES ({(editForm.imageUrl as string[]).length}) — arrastrá para reordenar · ★ portada · ✕ eliminar
                                 </div>
@@ -647,28 +633,15 @@ const AdminDashboard = () => {
                                             key={i}
                                             className={`adm-img-thumb ${editCover === i ? "is-cover" : ""} ${dragSrcEditEx === i ? "is-dragging" : ""} ${dragOverEditEx === i && dragSrcEditEx !== i ? "is-drag-over" : ""}`}
                                             draggable
-                                            onDragStart={e => {
-                                                setDragSrcEditEx(i)
-                                                e.dataTransfer.effectAllowed = "move"
-                                            }}
-                                            onDragOver={e => {
-                                                e.preventDefault()
-                                                e.dataTransfer.dropEffect = "move"
-                                                setDragOverEditEx(i)
-                                            }}
+                                            onDragStart={e => { setDragSrcEditEx(i); e.dataTransfer.effectAllowed = "move" }}
+                                            onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; setDragOverEditEx(i) }}
                                             onDragLeave={() => setDragOverEditEx(null)}
                                             onDrop={e => {
                                                 e.preventDefault()
-                                                if (dragSrcEditEx !== null && dragSrcEditEx !== i) {
-                                                    moveEditExistingImage(dragSrcEditEx, i)
-                                                }
-                                                setDragSrcEditEx(null)
-                                                setDragOverEditEx(null)
+                                                if (dragSrcEditEx !== null && dragSrcEditEx !== i) moveEditExistingImage(dragSrcEditEx, i)
+                                                setDragSrcEditEx(null); setDragOverEditEx(null)
                                             }}
-                                            onDragEnd={() => {
-                                                setDragSrcEditEx(null)
-                                                setDragOverEditEx(null)
-                                            }}
+                                            onDragEnd={() => { setDragSrcEditEx(null); setDragOverEditEx(null) }}
                                         >
                                             <img src={url} alt={`img-${i}`} />
                                             <div className="adm-img-thumb-actions">
@@ -680,10 +653,20 @@ const AdminDashboard = () => {
                                             {editCover === i && <span className="adm-cover-label">PORTADA</span>}
                                             <span className="adm-drag-handle" title="Arrastrá para reordenar">⠿</span>
                                             <span className="adm-img-index">{i + 1}</span>
+                                            {/* ← → solo visible en mobile */}
+                                            <div className="adm-img-mobile-order">
+                                                <button type="button" className="adm-mobile-order-btn"
+                                                    disabled={i === 0}
+                                                    onClick={() => moveEditExistingImage(i, i - 1)}>←</button>
+                                                <button type="button" className="adm-mobile-order-btn"
+                                                    disabled={i === (editForm.imageUrl as string[]).length - 1}
+                                                    onClick={() => moveEditExistingImage(i, i + 1)}>→</button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
 
+                                {/* ── Imágenes nuevas ── */}
                                 <div className="adm-form-section-label" style={{ marginTop: "1.5rem" }}>
                                     AGREGAR IMÁGENES NUEVAS ({newEditImages.length}) — arrastrá para reordenar
                                 </div>
@@ -708,28 +691,15 @@ const AdminDashboard = () => {
                                                 key={i}
                                                 className={`adm-img-thumb ${dragSrcEditNew === i ? "is-dragging" : ""} ${dragOverEditNew === i && dragSrcEditNew !== i ? "is-drag-over" : ""}`}
                                                 draggable
-                                                onDragStart={e => {
-                                                    setDragSrcEditNew(i)
-                                                    e.dataTransfer.effectAllowed = "move"
-                                                }}
-                                                onDragOver={e => {
-                                                    e.preventDefault()
-                                                    e.dataTransfer.dropEffect = "move"
-                                                    setDragOverEditNew(i)
-                                                }}
+                                                onDragStart={e => { setDragSrcEditNew(i); e.dataTransfer.effectAllowed = "move" }}
+                                                onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; setDragOverEditNew(i) }}
                                                 onDragLeave={() => setDragOverEditNew(null)}
                                                 onDrop={e => {
                                                     e.preventDefault()
-                                                    if (dragSrcEditNew !== null && dragSrcEditNew !== i) {
-                                                        moveEditNewImage(dragSrcEditNew, i)
-                                                    }
-                                                    setDragSrcEditNew(null)
-                                                    setDragOverEditNew(null)
+                                                    if (dragSrcEditNew !== null && dragSrcEditNew !== i) moveEditNewImage(dragSrcEditNew, i)
+                                                    setDragSrcEditNew(null); setDragOverEditNew(null)
                                                 }}
-                                                onDragEnd={() => {
-                                                    setDragSrcEditNew(null)
-                                                    setDragOverEditNew(null)
-                                                }}
+                                                onDragEnd={() => { setDragSrcEditNew(null); setDragOverEditNew(null) }}
                                             >
                                                 <img src={previewUrl(file)} alt={`new-${i}`} />
                                                 <div className="adm-img-thumb-actions">
@@ -738,6 +708,15 @@ const AdminDashboard = () => {
                                                 <span className="adm-new-label">NUEVA</span>
                                                 <span className="adm-drag-handle" title="Arrastrá para reordenar">⠿</span>
                                                 <span className="adm-img-index">{i + 1}</span>
+                                                {/* ← → solo visible en mobile */}
+                                                <div className="adm-img-mobile-order">
+                                                    <button type="button" className="adm-mobile-order-btn"
+                                                        disabled={i === 0}
+                                                        onClick={() => moveEditNewImage(i, i - 1)}>←</button>
+                                                    <button type="button" className="adm-mobile-order-btn"
+                                                        disabled={i === newEditImages.length - 1}
+                                                        onClick={() => moveEditNewImage(i, i + 1)}>→</button>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
@@ -746,11 +725,21 @@ const AdminDashboard = () => {
                                 {errorEdit === "cloudinary" && <p className="adm-error">Error al subir imágenes.</p>}
                                 {errorEdit === "general"   && <p className="adm-error">Error al guardar cambios.</p>}
 
+                                {/* Footer: ELIMINAR (izquierda) · CANCELAR + GUARDAR (derecha) */}
                                 <div className="adm-form-footer">
-                                    <button type="button" className="adm-cancel-btn" onClick={() => setEditHouse(null)}>CANCELAR</button>
-                                    <button type="submit" className="adm-submit-btn" disabled={loadingEdit}>
-                                        {loadingEdit ? "GUARDANDO..." : "GUARDAR CAMBIOS"}
+                                    <button
+                                        type="button"
+                                        className="adm-del-btn adm-del-btn--footer"
+                                        onClick={() => setDeleteId(editHouse._id)}
+                                    >
+                                        ELIMINAR
                                     </button>
+                                    <div className="adm-form-footer-right">
+                                        <button type="button" className="adm-cancel-btn" onClick={() => setEditHouse(null)}>CANCELAR</button>
+                                        <button type="submit" className="adm-submit-btn" disabled={loadingEdit}>
+                                            {loadingEdit ? "GUARDANDO..." : "GUARDAR CAMBIOS"}
+                                        </button>
+                                    </div>
                                 </div>
                             </form>
                         </motion.div>
@@ -759,11 +748,11 @@ const AdminDashboard = () => {
             </AnimatePresence>
 
             {/* ══════════════════════════════════════════════
-                MODAL CONFIRMAR ELIMINAR
+                MODAL CONFIRMAR ELIMINAR — z-index más alto para tapar el modal de edición
             ══════════════════════════════════════════════ */}
             <AnimatePresence>
                 {deleteId && (
-                    <motion.div className="adm-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                    <motion.div className="adm-overlay adm-overlay--top" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                         <motion.div className={`adm-confirm ${theme}`}
                             initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.92, opacity: 0 }}
                         >

@@ -9,6 +9,7 @@
     font-family: 'Montserrat', sans-serif;
     min-height: 100vh;
     padding-top: 5rem;
+    overflow-x: hidden;
 }
  
 .hv-root.dark  { background: var(--navy); color: #f0eaec; }
@@ -110,33 +111,6 @@
     margin: 0;
 }
  
-/* Filtros */
-.hv-filters {
-    display: flex;
-    gap: 0.6rem;
-    flex-wrap: wrap;
-    align-self: flex-end;
-}
- 
-.hv-filter-btn {
-    padding: 0.6rem 1.4rem;
-    background: transparent;
-    border: 1px solid var(--border-neu);
-    border-radius: 2px;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: inherit;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    opacity: 0.6;
-}
- 
-.hv-filter-btn:hover        { border-color: var(--rose); color: var(--rose); opacity: 1; }
-.hv-filter-btn.is-active    { background: var(--rose); border-color: var(--rose); color: #fff; opacity: 1; }
- 
 /* ══════════════════════════════════════════════════════════
    GRID
 ══════════════════════════════════════════════════════════ */
@@ -144,13 +118,12 @@
     display: grid;
     margin: 0 auto;
     grid-template-columns: repeat(2, 1fr);
-    
     gap: 50px;
     padding: 80px;
 }
  
 /* ══════════════════════════════════════════════════════════
-   CARD
+   CARD — ahora es un <a>, sin subrayado ni color heredado
 ══════════════════════════════════════════════════════════ */
 .hv-card {
     display: flex;
@@ -159,6 +132,9 @@
     max-width: 800px;
     transition: transform 0.4s ease, box-shadow 0.4s ease;
     position: relative;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
 }
  
 .hv-root.dark  .hv-card { background: #1a2030; }
@@ -246,6 +222,7 @@
     transition: background 0.2s;
     opacity: 0;
     line-height: 1;
+    z-index: 2;
 }
  
 .hv-card:hover .hv-img-nav { opacity: 1; }
@@ -368,48 +345,6 @@
     text-transform: uppercase;
     opacity: 0.45;
 }
- 
-/* Descripción */
-.hv-card-desc {
-    font-size: 0.82rem;
-    line-height: 1.7;
-    opacity: 0.55;
-    font-weight: 400;
-    margin: 0 0 1.2rem;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    flex: 1;
-}
- 
-/* Footer de la card */
-.hv-card-footer {
-    align-self: self-end;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border);
-    margin-top: auto;
-}
- 
-.hv-card-taxes {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    opacity: 0.45;
-}
- 
-.hv-card-cta {
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--rose);
-    text-decoration: none;
-    transition: letter-spacing 0.3s;
-}
- 
-.hv-card-cta:hover { letter-spacing: 2.5px; }
 
 /* ══════════════════════════════════════════════════════════
    PAGINACIÓN
@@ -486,10 +421,6 @@
     margin-left: 1rem;
 }
 
-/* ============================================================
-   AGREGAR AL FINAL DE housesView.css
-   ============================================================ */
-
 /* ── BOTÓN TOGGLE FILTROS ───────────────────────────────── */
 .hv-filter-toggle {
     position: relative;
@@ -555,7 +486,6 @@
     color: var(--rose);
 }
 
-/* Chips de filtro */
 .hv-filter-chips {
     display: flex;
     flex-wrap: wrap;
@@ -581,7 +511,6 @@
 .hv-chip.is-active { background: var(--rose); border-color: var(--rose); color: #fff; opacity: 1; }
 .hv-chip--sm      { padding: 0.4rem 0.8rem; }
 
-/* Input de filtro */
 .hv-filter-input {
     font-family: 'Montserrat', sans-serif;
     font-size: 16px;
@@ -600,7 +529,6 @@
 .hv-filter-input:focus { border-color: var(--rose); background: var(--rose-dim); }
 .hv-filter-input::placeholder { opacity: 0.4; }
 
-/* Rango de precio / superficie */
 .hv-filter-range {
     display: flex;
     align-items: center;
@@ -615,7 +543,6 @@
     flex-shrink: 0;
 }
 
-/* Footer de filtros */
 .hv-filters-footer {
     display: flex;
     justify-content: space-between;
@@ -684,119 +611,6 @@
     .hv-filter-toggle { align-self: flex-start; }
 }
 
-
-/* ============================================================
-   AGREGAR AL FINAL DE adminDashboard.css
-   ============================================================ */
-
-/* ── SPAN 2 columnas en el grid del form ────────────────── */
-.adm-span-2 { grid-column: 1 / -1; }
-
-/* ── AMENITIES INPUT ────────────────────────────────────── */
-.ami-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    grid-column: 1 / -1;
-}
-
-/* Seleccionadas */
-.ami-selected { display: flex; flex-direction: column; gap: 0.5rem; }
-
-.ami-selected-label {
-    font-size: 9px;
-    font-weight: 900;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: #c9637a;
-}
-
-.ami-chips-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-}
-
-.ami-chip {
-    font-family: 'Montserrat', sans-serif;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    padding: 0.4rem 0.9rem;
-    border: 1px solid rgba(128,128,128,0.2);
-    border-radius: 2px;
-    background: transparent;
-    color: inherit;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    opacity: 0.65;
-}
-
-.ami-chip:hover { border-color: #c9637a; color: #c9637a; opacity: 1; }
-
-.ami-chip--active {
-    background: rgba(201, 99, 122, 0.12);
-    border-color: #c9637a;
-    color: #c9637a;
-    opacity: 1;
-}
-
-.ami-chip-remove {
-    background: none;
-    border: none;
-    color: inherit;
-    cursor: pointer;
-    font-size: 10px;
-    padding: 0;
-    line-height: 1;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-}
-
-.ami-chip-remove:hover { opacity: 1; }
-
-/* Input custom */
-.ami-input-row {
-    display: flex;
-    gap: 0.6rem;
-}
-
-.ami-input { flex: 1; }
-
-.ami-add-btn {
-    padding: 0.7rem 1.2rem;
-    background: #c9637a;
-    color: #fff;
-    border: none;
-    border-radius: 2px;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 10px;
-    font-weight: 900;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background 0.25s;
-}
-
-.ami-add-btn:hover { background: #b5536a; }
-
-/* Sugerencias */
-.ami-historial { display: flex; flex-direction: column; gap: 0.5rem; }
-
-.ami-historial-label {
-    font-size: 9px;
-    font-weight: 900;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    opacity: 0.45;
-}
-
-.ami-chips-row--suggestions { max-height: 120px; overflow-y: auto; }
-
 @media (max-width: 480px) {
     .hv-page-info { display: none; }
     .hv-page-btn  { min-width: 36px; height: 36px; }
@@ -837,6 +651,5 @@
 ══════════════════════════════════════════════════════════ */
 @media (max-width: 480px) {
     .hv-card-stats { grid-template-columns: repeat(2, 1fr); }
-    .hv-filters    { gap: 0.4rem; }
     .hv-filter-btn { padding: 0.5rem 1rem; font-size: 10px; }
 }

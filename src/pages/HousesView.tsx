@@ -113,10 +113,14 @@ const HousesView = () => {
         setFilters(prev => ({ ...prev, [key]: val }))
     const clearFilters = () => setFilters(EMPTY_FILTERS)
 
-    const nextImg = (id: string, total: number) =>
+    const nextImg = (e: React.MouseEvent, id: string, total: number) => {
+        e.preventDefault()
         setImgIndex(prev => ({ ...prev, [id]: ((prev[id] ?? 0) + 1) % total }))
-    const prevImg = (id: string, total: number) =>
+    }
+    const prevImg = (e: React.MouseEvent, id: string, total: number) => {
+        e.preventDefault()
         setImgIndex(prev => ({ ...prev, [id]: ((prev[id] ?? 0) - 1 + total) % total }))
+    }
     const handlePage = (n: number) => { setPage(n); window.scrollTo({ top: 0, behavior: "smooth" }) }
 
     /* ── ESTADOS ── */
@@ -309,8 +313,9 @@ const HousesView = () => {
                     const hasMultiple = house.imageUrl.length > 1
 
                     return (
-                        <motion.article
+                        <motion.a
                             key={house._id}
+                            href={`/houses/${house._id}`}
                             className="hv-card"
                             initial={{ opacity: 0, y: 40 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -324,8 +329,8 @@ const HousesView = () => {
                                 <span className="hv-tag-type">{house.typeOfHouse}</span>
                                 {hasMultiple && (
                                     <>
-                                        <button className="hv-img-nav hv-img-nav--prev" onClick={() => prevImg(house._id, house.imageUrl.length)}>‹</button>
-                                        <button className="hv-img-nav hv-img-nav--next" onClick={() => nextImg(house._id, house.imageUrl.length)}>›</button>
+                                        <button className="hv-img-nav hv-img-nav--prev" onClick={e => prevImg(e, house._id, house.imageUrl.length)}>‹</button>
+                                        <button className="hv-img-nav hv-img-nav--next" onClick={e => nextImg(e, house._id, house.imageUrl.length)}>›</button>
                                         <div className="hv-img-dots">
                                             {house.imageUrl.map((_, di) => (
                                                 <span key={di} className={`hv-img-dot ${di === currentImg ? "is-active" : ""}`} />
@@ -352,26 +357,8 @@ const HousesView = () => {
                                     <div className="hv-stat"><span className="hv-stat-val">{house.covered}m²</span><span className="hv-stat-lbl">Cubiertos</span></div>
                                     <div className="hv-stat"><span className="hv-stat-val">{house.area}m²</span><span className="hv-stat-lbl">Total</span></div>
                                 </div>
-
-                                {/* Amenities */}
-                                {/* {house.amenities && house.amenities.length > 0 && (
-                                    <div className="hv-card-amenities">
-                                        {house.amenities.slice(0, 4).map((a, i) => (
-                                            <span key={i} className="hv-amenity-chip">{a}</span>
-                                        ))}
-                                        {house.amenities.length > 4 && (
-                                            <span className="hv-amenity-chip hv-amenity-more">+{house.amenities.length - 4}</span>
-                                        )}
-                                    </div>
-                                )} */}
-
-                                {/* <p className="hv-card-desc">{house.description}</p> */}
-                                <div className="hv-card-footer">
-                                    {/* <span className="hv-card-taxes">Expensas: {house.taxes}</span> */}
-                                    <a href={`/houses/${house._id}`} className="hv-card-cta">Ver descripción completa →</a>
-                                </div>
                             </div>
-                        </motion.article>
+                        </motion.a>
                     )
                 })}
             </section>

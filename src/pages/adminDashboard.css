@@ -9,6 +9,7 @@
     font-family: 'Montserrat', sans-serif;
     min-height: 100vh;
     padding-top: 5rem;
+    overflow-x: hidden;
 }
  
 .adm-root.dark  { background: var(--navy); color: #f0eaec; }
@@ -101,6 +102,7 @@
     gap: 0;
 }
  
+/* Cada fila es clickeable */
 .adm-row {
     display: grid;
     grid-template-columns: 100px 1fr auto auto;
@@ -109,6 +111,7 @@
     padding: 1.2rem 0;
     border-bottom: 1px solid var(--border-neu);
     transition: background 0.25s;
+    cursor: pointer;
 }
  
 .adm-row:hover { background: var(--rose-dim); margin: 0 -5%; padding-left: 5%; padding-right: 5%; }
@@ -181,44 +184,19 @@
     text-transform: uppercase;
     opacity: 0.45;
 }
- 
-.adm-row-actions {
-    display: flex;
-    gap: 0.5rem;
+
+/* Flecha al final de cada fila */
+.adm-row-arrow {
+    font-size: 1.4rem;
+    opacity: 0.25;
+    transition: opacity 0.2s, transform 0.2s;
+    line-height: 1;
 }
- 
-.adm-edit-btn, .adm-del-btn {
-    padding: 0.5rem 1rem;
-    border-radius: 2px;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.25s;
-}
- 
-.adm-edit-btn {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: inherit;
-}
- 
-.adm-edit-btn:hover {
-    border-color: var(--rose);
+
+.adm-row:hover .adm-row-arrow {
+    opacity: 0.7;
+    transform: translateX(3px);
     color: var(--rose);
-}
- 
-.adm-del-btn {
-    background: transparent;
-    border: 1px solid rgba(220, 50, 50, 0.25);
-    color: #e05555;
-}
- 
-.adm-del-btn:hover {
-    background: rgba(220, 50, 50, 0.08);
-    border-color: #e05555;
 }
  
 /* ── OVERLAY ────────────────────────────────────────────── */
@@ -231,6 +209,11 @@
     align-items: center;
     justify-content: center;
     padding: 1rem;
+}
+
+/* Overlay del confirm-delete encima del modal de edición */
+.adm-overlay--top {
+    z-index: 6000;
 }
  
 /* ── MODAL ──────────────────────────────────────────────── */
@@ -390,13 +373,10 @@
     user-select: none;
 }
 
-.adm-img-thumb:active {
-    cursor: grabbing;
-}
+.adm-img-thumb:active { cursor: grabbing; }
  
 .adm-img-thumb.is-cover { border-color: var(--rose); }
 
-/* Estado: siendo arrastrado */
 .adm-img-thumb.is-dragging {
     opacity: 0.3;
     transform: scale(0.94);
@@ -404,7 +384,6 @@
     box-shadow: 0 0 0 2px var(--rose);
 }
 
-/* Estado: destino del drop */
 .adm-img-thumb.is-drag-over {
     border-color: var(--rose-soft) !important;
     box-shadow: 0 0 0 3px rgba(201, 99, 122, 0.4), inset 0 0 0 2px rgba(201, 99, 122, 0.2);
@@ -469,7 +448,7 @@
 .adm-cover-label { background: var(--rose); color: #fff; }
 .adm-new-label   { background: #2a7a5a;     color: #fff; }
 
-/* ── DRAG HANDLE — icono de arrastre ───────────────────── */
+/* ── DRAG HANDLE ─────────────────────────────────────────── */
 .adm-drag-handle {
     position: absolute;
     top: 4px;
@@ -487,7 +466,7 @@
 
 .adm-img-thumb:hover .adm-drag-handle { opacity: 1; }
 
-/* ── NÚMERO DE ORDEN ───────────────────────────────────── */
+/* ── NÚMERO DE ORDEN ─────────────────────────────────────── */
 .adm-img-index {
     position: absolute;
     top: 4px;
@@ -502,6 +481,37 @@
     pointer-events: none;
     line-height: 1.4;
 }
+
+/* ── BOTONES ← → PARA MOBILE (ocultos en desktop) ──────── */
+.adm-img-mobile-order {
+    display: none; /* se muestran solo en mobile via @media */
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    justify-content: space-between;
+    padding: 3px;
+    background: rgba(0,0,0,0.45);
+    gap: 3px;
+}
+
+.adm-mobile-order-btn {
+    flex: 1;
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: #fff;
+    font-size: 0.9rem;
+    height: 26px;
+    border-radius: 2px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.adm-mobile-order-btn:hover:not(:disabled) { background: var(--rose); }
+.adm-mobile-order-btn:disabled { opacity: 0.2; cursor: not-allowed; }
  
 /* ── ERROR ──────────────────────────────────────────────── */
 .adm-error {
@@ -518,11 +528,20 @@
 /* ── FORM FOOTER ────────────────────────────────────────── */
 .adm-form-footer {
     display: flex;
+    align-items: center;
+    justify-content: space-between;
     gap: 0.8rem;
-    justify-content: flex-end;
     padding-top: 1rem;
     border-top: 1px solid var(--border);
     flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.adm-form-footer-right {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+    margin-left: auto;
 }
  
 .adm-cancel-btn {
@@ -559,6 +578,31 @@
  
 .adm-submit-btn:hover:not(:disabled) { background: #b5536a; }
 .adm-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Botón eliminar dentro del footer del modal */
+.adm-del-btn {
+    padding: 0.8rem 1.4rem;
+    border-radius: 3px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s;
+    background: transparent;
+    border: 1px solid rgba(220, 50, 50, 0.3);
+    color: #e05555;
+}
+
+.adm-del-btn:hover {
+    background: rgba(220, 50, 50, 0.08);
+    border-color: #e05555;
+}
+
+.adm-del-btn--footer {
+    /* mismos estilos, se hereda de adm-del-btn */
+}
  
 /* ── CONFIRM DELETE ─────────────────────────────────────── */
 .adm-confirm {
@@ -655,7 +699,7 @@
    RESPONSIVE — 1024px
 ══════════════════════════════════════════════════════════ */
 @media (max-width: 1024px) {
-    .adm-row { grid-template-columns: 80px 1fr auto; }
+    .adm-row { grid-template-columns: 80px 1fr auto auto; }
     .adm-row-meta { display: none; }
 }
  
@@ -667,7 +711,7 @@
  
     .adm-img-preview-grid { grid-template-columns: repeat(3, 1fr); }
  
-    .adm-row { 
+    .adm-row {
         display: flex;
         justify-content: space-between;
         gap: 1rem;
@@ -679,9 +723,17 @@
  
     .adm-header { flex-direction: column; align-items: flex-start; }
 
-    /* En mobile mostrar handle siempre visible */
-    .adm-drag-handle { opacity: 0.7; }
+    /* En mobile: ocultar drag handle, mostrar botones ← → */
+    .adm-drag-handle { display: none; }
     .adm-img-index   { opacity: 0.9; }
+    .adm-img-mobile-order { display: flex; }
+
+    /* Acciones del hover también visibles sin hover en mobile */
+    .adm-img-thumb-actions { opacity: 1; background: rgba(0,0,0,0.4); }
+
+    .adm-form-footer { flex-direction: column; align-items: stretch; }
+    .adm-form-footer-right { justify-content: flex-end; }
+    .adm-del-btn--footer { text-align: center; }
 }
  
 /* ══════════════════════════════════════════════════════════
@@ -689,8 +741,6 @@
 ══════════════════════════════════════════════════════════ */
 @media (max-width: 480px) {
     .adm-img-preview-grid { grid-template-columns: repeat(2, 1fr); }
- 
-    .adm-row-actions { flex-direction: column; gap: 0.3rem; }
- 
-    .adm-edit-btn, .adm-del-btn { font-size: 9px; padding: 0.4rem 0.7rem; }
+    .adm-form-footer-right { flex-direction: column; }
+    .adm-cancel-btn, .adm-submit-btn { text-align: center; }
 }
