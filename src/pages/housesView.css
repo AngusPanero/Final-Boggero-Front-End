@@ -9,7 +9,6 @@
     font-family: 'Montserrat', sans-serif;
     min-height: 100vh;
     padding-top: 5rem;
-    overflow-x: hidden;
 }
  
 .hv-root.dark  { background: var(--navy); color: #f0eaec; }
@@ -599,6 +598,29 @@
     color: var(--rose);
     opacity: 1;
 }
+
+
+/* ── STATUS BADGE en la card ────────────────────────────── */
+.hv-status-badge {
+    position: absolute;
+    top: 52px;
+    left: 14px;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 2px;
+    color: #fff;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.hv-status--disponible { background: #2a7a5a; }
+.hv-status--reservada  { background: #c9903a; }
+.hv-status--vendida    { background: #4a4a4a; }
+.hv-status--alquilada  { background: #2a4a7a; }
+.hv-status--pausada    { background: #888;    }
 
 /* ── RESPONSIVE FILTROS 1024px ──────────────────────────── */
 @media (max-width: 1024px) {

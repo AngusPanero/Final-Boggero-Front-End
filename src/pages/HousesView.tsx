@@ -24,6 +24,7 @@ interface House {
     imageUrl: string[]
     maps: string
     amenities?: string[]
+    status?: string
     createdAt: string
 }
 
@@ -42,6 +43,14 @@ const EMPTY_FILTERS: Filters = {
     operation: "", typeOfHouse: "", ambients: "",
     ubication: "", minPrice: "", maxPrice: "",
     minArea: "", maxArea: ""
+}
+
+const statusColor: Record<string, string> = {
+    "Disponible": "hv-status--disponible",
+    "Reservada":  "hv-status--reservada",
+    "Vendida":    "hv-status--vendida",
+    "Alquilada":  "hv-status--alquilada",
+    "Pausada":    "hv-status--pausada",
 }
 
 const operationColor: Record<string, string> = {
@@ -327,6 +336,9 @@ const HousesView = () => {
                                 <div className="hv-card-img-overlay" />
                                 <span className={`hv-tag ${operationColor[house.operation] ?? "hv-tag--venta"}`}>{house.operation}</span>
                                 <span className="hv-tag-type">{house.typeOfHouse}</span>
+                                <span className={`hv-status-badge ${statusColor[house.status ?? "Disponible"] ?? "hv-status--disponible"}`}>
+                                    {house.status ?? "Disponible"}
+                                </span>
                                 {hasMultiple && (
                                     <>
                                         <button className="hv-img-nav hv-img-nav--prev" onClick={e => prevImg(e, house._id, house.imageUrl.length)}>‹</button>

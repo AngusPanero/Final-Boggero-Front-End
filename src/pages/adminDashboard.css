@@ -744,3 +744,23 @@
     .adm-form-footer-right { flex-direction: column; }
     .adm-cancel-btn, .adm-submit-btn { text-align: center; }
 }
+
+/* ── STATUS TAGS EN LA LISTA ────────────────────────────── */
+.adm-status-tag {
+    display: inline-block;
+    font-size: 7px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 2px;
+    color: #fff;
+    margin-bottom: 0.4rem;
+    margin-left: 0.3rem;
+}
+
+.adm-status-disponible { background: #2a7a5a; }
+.adm-status-reservada  { background: #7a5a2a; }
+.adm-status-vendida    { background: #4a4a4a; }
+.adm-status-alquilada  { background: #2a4a7a; }
+.adm-status-pausada    { background: #888;    }

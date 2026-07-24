@@ -624,6 +624,41 @@ h1.hi-title {
     opacity: 1;
 }
 
+/* ── STATUS BADGE sobre la imagen principal ─────────────── */
+/* Agregar al final de houseIndividual.css */
+
+.hi-status-badge {
+    position: absolute;
+    bottom: 40px;
+    right: 14px;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 2px;
+    color: #fff;
+    pointer-events: none;
+}
+
+.hi-status--disponible { background: #2a7a5a; }
+.hi-status--reservada  { background: #7a5a2a; }
+.hi-status--vendida    { background: #4a4a4a; }
+.hi-status--alquilada  { background: #2a4a7a; }
+.hi-status--pausada    { background: #888;    }
+
+/* Estado en la fila del sidebar */
+.hi-sidebar-status {
+    font-weight: 900;
+}
+
+.hi-sidebar-status.hi-status--disponible { color: #2a9a6a; background-color: transparent !important; }
+.hi-sidebar-status.hi-status--reservada  { color: #c9a24a; background-color: transparent !important; }
+.hi-sidebar-status.hi-status--vendida    { color: #888; background-color: transparent !important;    }
+.hi-sidebar-status.hi-status--alquilada  { color: #4a7ac9; background-color: transparent !important; }
+.hi-sidebar-status.hi-status--pausada    { color: #aaa; background-color: transparent !important;    }
+
+
 /* ── RESPONSIVE ─────────────────────────────────────────── */
 @media (max-width: 768px) {
     .hi-amenity { font-size: 9px; padding: 5px 10px; }

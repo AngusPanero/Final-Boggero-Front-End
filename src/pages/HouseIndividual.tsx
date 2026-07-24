@@ -26,12 +26,21 @@ interface House {
     maps: string
     createdAt: string
     amenities?: string[] | string
+    status?: string
 }
  
 const operationColor: Record<string, string> = {
     "Venta":    "hi-tag--venta",
     "Alquiler": "hi-tag--alquiler",
     "Temporal": "hi-tag--temporal",
+}
+
+const statusColor: Record<string, string> = {
+    "Disponible": "hi-status--disponible",
+    "Reservada":  "hi-status--reservada",
+    "Vendida":    "hi-status--vendida",
+    "Alquilada":  "hi-status--alquilada",
+    "Pausada":    "hi-status--pausada",
 }
  
 const HouseIndividual = () => {
@@ -74,14 +83,12 @@ const HouseIndividual = () => {
         setActiveImg(i => (i - 1 + house.imageUrl.length) % house.imageUrl.length)
     }
  
-    // Whatsapp — reemplazá con el número real
     const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP
     const whatsappMsg = house
         ? encodeURIComponent(`Hola Elizabeth, me interesa la propiedad: *${house.title}* (${house.direction}). ¿Podemos hablar?`)
         : ""
     const whatsappUrl = `${WHATSAPP_NUMBER}?text=${whatsappMsg}`
  
-    /* ── ESTADOS ── */
     if (loading) return (
         <div className={`hi-root ${theme}`}>
             <div className="hi-state-wrap">
@@ -102,10 +109,11 @@ const HouseIndividual = () => {
         </div>
     )
  
+    const houseStatus = house.status ?? "Disponible"
+
     return (
         <div className={`hi-root ${theme}`}>
  
-            {/* ── BACK ── */}
             <motion.button
                 className="hi-back"
                 onClick={() => navigate("/houses")}
@@ -116,12 +124,7 @@ const HouseIndividual = () => {
                 ← VOLVER AL LISTADO
             </motion.button>
  
-            {/* ══════════════════════════════════════════════
-                GALERÍA PRINCIPAL
-            ══════════════════════════════════════════════ */}
             <section className="hi-gallery">
- 
-                {/* Imagen principal */}
                 <div className="hi-gallery-main" onClick={() => setLightbox(true)}>
                     <AnimatePresence mode="wait">
                         <motion.img
@@ -137,13 +140,14 @@ const HouseIndividual = () => {
                     </AnimatePresence>
                     <div className="hi-gallery-overlay" />
  
-                    {/* Tags sobre imagen */}
                     <span className={`hi-tag ${operationColor[house.operation] ?? "hi-tag--venta"}`}>
                         {house.operation}
                     </span>
                     <span className="hi-tag-type">{house.typeOfHouse}</span>
+                    <span className={`hi-status-badge ${statusColor[houseStatus] ?? "hi-status--disponible"}`}>
+                        {houseStatus}
+                    </span>
  
-                    {/* Flechas */}
                     {house.imageUrl.length > 1 && (
                         <>
                             <button className="hi-nav hi-nav--prev" onClick={e => { e.stopPropagation(); prevImg() }}>‹</button>
@@ -154,7 +158,6 @@ const HouseIndividual = () => {
                     <span className="hi-gallery-hint">🔍 Click para ampliar</span>
                 </div>
  
-                {/* Thumbnails */}
                 {house.imageUrl.length > 1 && (
                     <div className="hi-thumbnails">
                         {house.imageUrl.map((url, i) => (
@@ -170,15 +173,8 @@ const HouseIndividual = () => {
                 )}
             </section>
  
-            {/* ══════════════════════════════════════════════
-                CONTENIDO PRINCIPAL
-            ══════════════════════════════════════════════ */}
             <div className="hi-content">
- 
-                {/* ── COLUMNA IZQUIERDA ── */}
                 <main className="hi-main">
- 
-                    {/* Precio y título */}
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -198,7 +194,6 @@ const HouseIndividual = () => {
  
                     <div className="hi-divider" />
  
-                    {/* Amenities */}
                     {house.amenities && house.amenities.length > 0 && (
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
@@ -220,7 +215,6 @@ const HouseIndividual = () => {
 
                     <div className="hi-divider" />
 
-                    {/* Stats grid */}
                     <motion.div
                         className="hi-stats"
                         initial={{ opacity: 0, y: 20 }}
@@ -228,12 +222,12 @@ const HouseIndividual = () => {
                         transition={{ duration: 0.7, delay: 0.2 }}
                     >
                         {[
-                            { val: house.ambients,       lbl: "Ambientes"      },
-                            { val: house.bathrooms,      lbl: "Baños"          },
-                            { val: `${house.covered}m²`, lbl: "Cubiertos"      },
-                            { val: `${house.uncovered}m²`,lbl: "Descubiertos"  },
-                            { val: `${house.area}m²`,    lbl: "Superficie total"},
-                            { val: `${house.years} años`,lbl: "Antigüedad"     },
+                            { val: house.ambients,        lbl: "Ambientes"       },
+                            { val: house.bathrooms,       lbl: "Baños"           },
+                            { val: `${house.covered}m²`,  lbl: "Cubiertos"       },
+                            { val: `${house.uncovered}m²`,lbl: "Descubiertos"    },
+                            { val: `${house.area}m²`,     lbl: "Superficie total" },
+                            { val: `${house.years} años`, lbl: "Antigüedad"      },
                         ].map((s, i) => (
                             <div key={i} className="hi-stat">
                                 <span className="hi-stat-val">{s.val}</span>
@@ -244,7 +238,6 @@ const HouseIndividual = () => {
  
                     <div className="hi-divider" />
  
-                    {/* Descripción */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -256,7 +249,6 @@ const HouseIndividual = () => {
  
                     <div className="hi-divider" />
  
-                    {/* Mapa */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -275,7 +267,6 @@ const HouseIndividual = () => {
                     </motion.div>
                 </main>
  
-                {/* ── COLUMNA DERECHA — SIDEBAR ── */}
                 <aside className="hi-sidebar">
                     <motion.div
                         className="hi-sidebar-inner"
@@ -283,17 +274,19 @@ const HouseIndividual = () => {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.7, delay: 0.3 }}
                     >
-                        {/* Precio */}
                         <div className="hi-sidebar-price">
                             <span className="hi-sidebar-price-label">PRECIO</span>
                             <span className="hi-sidebar-price-val">{house.operation === "Venta" ? "U$S " : "$ "}{Number(house.price.replace(/[^0-9]/g, "")).toLocaleString("es-AR")}</span>
                         </div>
  
-                        {/* Info rápida */}
                         <div className="hi-sidebar-info">
                             <div className="hi-sidebar-row">
                                 <span className="hi-sidebar-key">Operación</span>
                                 <span className="hi-sidebar-val">{house.operation}</span>
+                            </div>
+                            <div className="hi-sidebar-row">
+                                <span className="hi-sidebar-key">Estado</span>
+                                <span className={`hi-sidebar-val hi-sidebar-status ${statusColor[houseStatus] ?? "hi-status--disponible"}`}>{houseStatus}</span>
                             </div>
                             <div className="hi-sidebar-row">
                                 <span className="hi-sidebar-key">Tipo</span>
@@ -315,7 +308,6 @@ const HouseIndividual = () => {
  
                         <div className="hi-sidebar-divider" />
  
-                        {/* CTAs */}
                         <a
                             href={whatsappUrl}
                             target="_blank"
@@ -336,9 +328,6 @@ const HouseIndividual = () => {
                 </aside>
             </div>
  
-            {/* ══════════════════════════════════════════════
-                LIGHTBOX
-            ══════════════════════════════════════════════ */}
             <AnimatePresence>
                 {lightbox && (
                     <motion.div

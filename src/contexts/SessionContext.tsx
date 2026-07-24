@@ -69,7 +69,7 @@ export const SessionProvider = ({ children }: ProviderProps) => {
             const response = await axios.post(`${import.meta.env.VITE_API_URL}/register`, { email, password })
             if(response.status === 201){
                 /* console.log(`User created successfully! 🟢`); */
-                
+                setLoading(false)
                 registerOpen(false)
                 loginOpen(true)
             }
@@ -80,8 +80,6 @@ export const SessionProvider = ({ children }: ProviderProps) => {
             }
             setError(true)
             /* console.error("Internal error creating user! 🔴", error) */
-        } finally {
-            setLoading(false)
         }
     }
 
@@ -99,7 +97,7 @@ export const SessionProvider = ({ children }: ProviderProps) => {
             console.log("USER", user);        
             
             setUser(user);
-
+            setLoading(false);
             if (isAdmin) {
                 navigate("/admin");
             } else {
@@ -137,8 +135,6 @@ export const SessionProvider = ({ children }: ProviderProps) => {
 
         console.error("Login error:", error);
         setError("Error al iniciar sesión. Intentá más tarde.");
-    } finally {
-        setLoading(false);
     }
 };
     // Logout

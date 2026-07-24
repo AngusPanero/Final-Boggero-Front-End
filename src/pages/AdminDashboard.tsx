@@ -27,6 +27,7 @@ interface House {
     imageUrl: string[]
     maps: string
     amenities: string[]
+    status: string
     createdAt: string
 }
 
@@ -39,7 +40,7 @@ const EMPTY_FORM: FormData = {
     price: "", typeOfHouse: "Casa", description: "", condition: "Excelente",
     ambients: "", bathrooms: "", years: "", taxes: "",
     covered: "", uncovered: "", area: "", maps: "",
-    imageUrl: [], amenities: []
+    imageUrl: [], amenities: [], status: "Disponible"
 }
 
 const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`
@@ -200,6 +201,8 @@ const HouseFormFields = ({
                 options={["Venta", "Alquiler", "Temporal"]} />
             <SelectField label="Tipo"      name="typeOfHouse" value={data.typeOfHouse} onChange={onChange} required
                 options={["Casa", "Departamento", "PH", "Duplex", "Triplex", "Local Comercial", "Oficina", "Cochera", "Terreno", "Lote", "Quinta", "Campo", "Galpón", "Edificio", "Hotel", "Consultorio"]} />
+            <SelectField label="Estado"    name="status"      value={data.status ?? "Disponible"} onChange={onChange} required
+                options={["Disponible", "Reservada", "Vendida", "Alquilada", "Pausada"]} />
         </div>
 
         <div className="adm-form-section-label" style={{ marginTop: "1.5rem" }}>CARACTERÍSTICAS</div>
@@ -341,7 +344,7 @@ const AdminDashboard = () => {
                 ordered.unshift(cover)
             }
             const urls = await uploadToCloudinary(ordered)
-            const finalData = { ...formData, imageUrl: urls }
+            const finalData = { ...formData, imageUrl: urls, status: formData.status ?? "Disponible" }
             await axios.post(`${import.meta.env.VITE_API_URL}/createhouse`, finalData, { withCredentials: true })
             setShowCreate(false)
             setFormData(EMPTY_FORM)
@@ -491,6 +494,7 @@ const AdminDashboard = () => {
                         </div>
                         <div className="adm-row-info">
                             <span className={`adm-op-tag adm-op-${house.operation.toLowerCase()}`}>{house.operation}</span>
+                            <span className={`adm-status-tag adm-status-${(house.status ?? "disponible").toLowerCase().replace(/ /g, "-")}`}>{house.status ?? "Disponible"}</span>
                             <p className="adm-row-title">{house.title}</p>
                             <p className="adm-row-dir">{house.direction}</p>
                             {house.amenities && house.amenities.length > 0 && (
