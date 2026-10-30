@@ -21,6 +21,8 @@ const LoginCorporate = ({ closeLogin }: LoginProps) => {
     const [ email, setEmail ] = useState("");
     const [ password, setPassword ] = useState("");
     const [ visiblePassword, setVisiblePassword ] = useState<boolean>(false)
+    const [ pin, setPin ] = useState("");          // Firma de 4 dígitos
+    const [ pinError, setPinError ] = useState("");
 
     const handleClose = () => {
         setExit(true);
@@ -41,9 +43,19 @@ const LoginCorporate = ({ closeLogin }: LoginProps) => {
 
     const loginSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const response = await handleLogin(email, password); 
+
+        // Validación rápida de formato (la validación real la hace el backend)
+        if (!/^\d{4}$/.test(pin)) {
+            setPinError("La firma tiene 4 dígitos.");
+            return;
+        }
+        setPinError("");
+
+        const response = await handleLogin(email, password, pin);
         if (response) {
             closeLogin();
+        } else {
+            setPin(""); // La firma nunca queda cargada después de un intento fallido
         }
     }
 
@@ -122,6 +134,30 @@ const LoginCorporate = ({ closeLogin }: LoginProps) => {
                                 </div>
                             </div>
                         </div>
+
+                        {/* PASO 03: Firma de 4 dígitos */}
+                        <div className="log-corp-input-wrapper">
+                            <span className="log-corp-number">03</span>
+                            <div className="log-corp-group">
+                                <label htmlFor="pin">Firma de acceso (4 dígitos)</label>
+                                <input
+                                    id="pin"
+                                    className="log-corp-pin"
+                                    type="password"
+                                    inputMode="numeric"
+                                    autoComplete="off"
+                                    maxLength={4}
+                                    placeholder="••••"
+                                    value={pin}
+                                    onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        {pinError && (
+                            <p className="log-corp-error-msg">{pinError}</p>
+                        )}
 
                         {error && (
                             <p className="log-corp-error-msg">{error}</p>

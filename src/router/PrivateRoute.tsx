@@ -10,6 +10,7 @@ interface PrivateRouteProps {
     adminOnly?: boolean;
 }
 
+// Esto es solo UX: la protección real está en el backend (adminMiddleware en cada ruta admin).
 const PrivateRoute = ({ children, adminOnly = false }: PrivateRouteProps) => {
     const { user, loading } = UseSession();
     const [status, setStatus] = useState<string>("loading");
@@ -22,32 +23,45 @@ const PrivateRoute = ({ children, adminOnly = false }: PrivateRouteProps) => {
             return;
         }
 
+        // Si cambia el usuario o la ruta, vuelvo a verificar desde cero (no muestro el estado viejo)
+        setStatus("loading");
+
+        let cancelled = false;
+
         const verifyAccess = async () => {
             try {
-                const isAdmin = !!user.admin;
-
-                if (adminOnly && !isAdmin) {
+                // Corte rápido con lo que ya tengo en memoria: un no-admin ni siquiera llama a la API
+                if (adminOnly && user.admin !== true) {
                     setStatus("no-admin");
                     return;
                 }
 
-                const response = await axios.get(`${import.meta.env.VITE_API_URL}/me`, { 
-                    withCredentials: true 
+                const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/me`, {
+                    withCredentials: true
                 });
 
-                if (response.status === 200) {
-                    setStatus("ok");
+                if (cancelled) return;
+
+                // Confirmo el rol con lo que devuelve el servidor, no con el estado local
+                if (adminOnly && data?.user?.admin !== true) {
+                    setStatus("no-admin");
+                    return;
                 }
+
+                setStatus("ok");
             } catch (error: any) {
+                if (cancelled) return;
                 if (error.response?.status === 403) {
                     setStatus("banned");
                 } else {
-                    setStatus("unauth");
+                    setStatus("unauth"); // Cookie vencida, inexistente o inválida
                 }
             }
         };
 
         verifyAccess();
+
+        return () => { cancelled = true; };
     }, [user, loading, adminOnly]);
 
     if (loading || status === "loading") {
@@ -59,11 +73,11 @@ const PrivateRoute = ({ children, adminOnly = false }: PrivateRouteProps) => {
     }
 
     if (status === "banned") {
-        return <Error errorMessage={"Usuario Baneado, contactate con DeepDev."} />;
+        return <Error errorMessage={"Usuario Baneado, contactate con Boggero Propiedades."} />;
     }
 
     if (status === "unauth" || !user) {
-        return <Error errorMessage={"No autorizado, por favor inicia sesión."} />;
+        return <Error errorMessage={"Sesión vencida o no autorizada, por favor iniciá sesión."} />;
     }
 
     // Solo si todo está OK, renderizamos los children (el dashboard o la vista protegida)

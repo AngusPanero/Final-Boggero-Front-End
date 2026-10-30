@@ -12,7 +12,7 @@ interface ProviderProps {
 
 interface SessionContextType {
     handleRegister: (email: string, password: string, loginOpen: any, registerOpen: any) => Promise<void>;
-    handleLogin: (email: string, password: string) => Promise<boolean | undefined>;
+    handleLogin: (email: string, password: string, pin: string) => Promise<boolean | undefined>;
     handleLogout: () => Promise<void>;
     handleResetPassword: (email: string) => Promise<void>;
     error: string | boolean | null | number;
@@ -26,6 +26,9 @@ interface SessionContextType {
     handleBanUser: (email: any) => Promise<void>
     verifyIsAdmin: () => void
 }
+
+// Mensaje cuando la IP quedó bloqueada por intentos de acceso indebido
+const IP_BLOCKED_MESSAGE = "Acceso bloqueado temporalmente desde esta conexión. Intentá más tarde o contactate con Boggero Propiedades.";
 
 export const SessionProvider = ({ children }: ProviderProps) => {
     const navigate = useNavigate()
@@ -74,6 +77,10 @@ export const SessionProvider = ({ children }: ProviderProps) => {
                 loginOpen(true)
             }
         } catch (error: any) {
+            if(error.response?.data?.code === "auth/ip-blocked"){
+                setError(IP_BLOCKED_MESSAGE)
+                return
+            }
             if(error.response?.status === 409){
                 setError(true)
                 return
@@ -84,13 +91,13 @@ export const SessionProvider = ({ children }: ProviderProps) => {
     }
 
     // Login
-    const handleLogin = async (email: string, password: string) => {
+    const handleLogin = async (email: string, password: string, pin: string) => {
     try {
         setLoading(true);
         setError(null);
 
-        // 1. Llamada única al backend
-        const response = await axios.post(`${import.meta.env.VITE_API_URL}/login`, { email, password }, { withCredentials: true });
+        // 1. Llamada única al backend: valida primero la firma y después las credenciales en Firebase
+        const response = await axios.post(`${import.meta.env.VITE_API_URL}/login`, { email, password, pin }, { withCredentials: true });
 
         if (response.status === 200) {
             const { user, isAdmin } = response.data;
@@ -108,6 +115,24 @@ export const SessionProvider = ({ children }: ProviderProps) => {
 
     } catch (error: any) {
         const serverCode = error.response?.data?.code;
+
+        // IP bloqueada por intentos de acceso indebido: no sigo con la lógica de intentos fallidos
+        if (serverCode === "auth/ip-blocked") {
+            setError(IP_BLOCKED_MESSAGE);
+            return false;
+        }
+
+        // Firma de 4 dígitos: va ANTES del bloque de 401, si no una firma mal puesta
+        // se contaría como contraseña incorrecta en /login-failed
+        if (serverCode === "CLAVE_INCORRECTA" || serverCode === "CLAVE_BLOQUEADA" || serverCode === "CLAVE_FORMATO") {
+            setError(error.response?.data?.message?.replace(" 🔴", "") || "Firma incorrecta.");
+            return false;
+        }
+
+        if (serverCode === "CLAVE_NO_CONFIGURADA") {
+            setError("La firma no está configurada en el servidor. Contactate con DeepDev.");
+            return false;
+        }
 
         // 4. Respetar tu lógica de intentos fallidos
         if (serverCode === "auth/invalid-credential" || error.response?.status === 401) {
@@ -135,6 +160,10 @@ export const SessionProvider = ({ children }: ProviderProps) => {
 
         console.error("Login error:", error);
         setError("Error al iniciar sesión. Intentá más tarde.");
+        return false;
+    } finally {
+        // Antes no se apagaba en los errores: el Loader quedaba trabado y el mensaje no se veía
+        setLoading(false);
     }
 };
     // Logout

@@ -159,6 +159,14 @@ h2.log-title {
 }
  
 .log-corp-eye:hover { opacity: 0.8; }
+
+/* Firma de 4 dígitos */
+.log-corp-group input.log-corp-pin {
+    text-align: center;
+    letter-spacing: 12px;
+    font-weight: 800;
+    max-width: 180px;
+}
  
 /* Forgot */
 .log-corp-forgot {
